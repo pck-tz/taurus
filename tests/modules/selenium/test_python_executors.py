@@ -34,7 +34,7 @@ class MockWebDriver(object):
         return [element for element in self.content if element == target]
 
 
-class TestLocatorsMagager(BZTestCase):
+class TestLocatorsManager(BZTestCase):
     def test_get_locator_timeout(self):
         content = [{'css': 'existed_css'}]
         timeout = 30

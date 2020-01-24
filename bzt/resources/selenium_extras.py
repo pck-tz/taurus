@@ -1,8 +1,10 @@
 # Utility functions and classes for Taurus Selenium tests
 
-from selenium.common.exceptions import NoSuchWindowException, NoSuchFrameException, NoSuchElementException
+from selenium.common.exceptions import NoSuchWindowException, NoSuchFrameException, NoSuchElementException, \
+    WebDriverException
 from apiritif import get_transaction_handlers, set_transaction_handlers, get_from_thread_store
 from selenium.webdriver.common.by import By
+from selenium.webdriver.remote import webelement
 
 
 def add_flow_markers():
@@ -129,3 +131,26 @@ class LocatorsManager:
         # restore the implicit wait value
         self.driver.implicitly_wait(self.timeout)
         return locator
+
+    def get_element(self, locators) -> webelement:
+        multi_locators = len(locators) > 1
+        # Which exception should be raised? First or last?
+        exception = None
+        for index, locator in enumerate(locators):
+            locator_type = list(locator.keys())[0]
+            locator_value = locator[locator_type]
+            try:
+                element = self.driver.find_element(self.BYS[locator_type.lower()], locator_value)
+                if index > 0:
+                    self.driver.implicitly_wait(self.timeout)
+                return element
+            except WebDriverException as exc:
+                print(exc.msg)
+                if index == 0:
+                    exception = exc
+                    if multi_locators:
+                        self.driver.implicitly_wait(0)
+        else:
+            if multi_locators:
+                self.driver.implicitly_wait(self.timeout)
+            raise exception
